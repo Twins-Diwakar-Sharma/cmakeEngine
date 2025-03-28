@@ -26,7 +26,7 @@ private:
 
 
     float translateForward, translateSide;
-  	float transVal = 0.05f;
+  	float transVal = 0.5f; // 0.05
   	float rotx, roty;
 
     void initialize();

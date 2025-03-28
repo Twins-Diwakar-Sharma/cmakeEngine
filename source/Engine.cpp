@@ -60,8 +60,8 @@ void Engine::initialize()
     objects.emplace_back(meshMap["scary"], texMap["scary"]);
     objects[0].setPosition(0,-41, 0);
 
-    texMap.emplace("heightmap", "heightmap");
-    texMap.emplace("normalmap", "normalmap");
+    texMap.emplace("heightmap", "cratorHM");
+    texMap.emplace("normalmap", "cratorNM");
     
     cascadedShadow.createShadowFBOs(512,512); 
     cascadedShadow.update(cam, sun);

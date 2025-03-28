@@ -74,7 +74,7 @@ float getProceduralHeight(float x, float z)
   h = h*128 + 50;
   
 
-  return h;
+  return h/3;
 }
 
 
