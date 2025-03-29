@@ -51,17 +51,15 @@ float fbm (vec2 p)
 
 
 uniform sampler2D heightmap;
+uniform int scale;
+uniform vec2 config;
 float getProceduralHeight(float x, float z)
 {
-/*   vec2 p = vec2(x,z)/noiseSpan;
-   float value = fbm(p);
-   float height = value * noiseSpan;
-   return height;
- */ 
-  
+
   float res = 512;
   vec2 pos = vec2(x,z);
   pos = pos + vec2(res/2, res/2);
+  pos = pos/config.y;
   if(pos.x <= 0 || pos.x >= res || pos.y <= 0 || pos.y >= res)
   {
       return -64;
@@ -70,13 +68,38 @@ float getProceduralHeight(float x, float z)
   pos = pos/res;
 
   float h = texture(heightmap, pos).r;
-  h = 2*h - 1;
-  return h*128 + 50;
+  h = 2*h - 1.0;
+  h = h*128 + 50;
+  
+
+  return h/4;
 }
 
+
+vec3 getNormal(float x, float y)
+{
+    float h = 0.2; // 0.2
+    vec3 me = vec3(x,0,y);
+  
+    vec3 meX = vec3(x+h,0,y);
+    vec3 meZ = vec3(x,0,y+h);
+
+    me.y = getProceduralHeight(me.x,me.z);
+    meX.y = getProceduralHeight(meX.x,meX.z);
+    meZ.y = getProceduralHeight(meZ.x,meZ.z);
+
+    vec3 ans = normalize(cross(meZ-me,meX-me));
+
+    return ans;
+
+}
+
+
+uniform sampler2D normalmap;
+
+/*
 uniform int scale;
 uniform vec2 config;
-uniform sampler2D normalmap;
 vec3 getNormal(float x, float y)
 {
   float res = 512;
@@ -94,22 +117,36 @@ vec3 getNormal(float x, float y)
   normal = 2.0*normal - vec3(1.0);
   return normal;
 }
+*/
 
 in vec3 fragWorldPos;
-in vec3 testColor;
 in vec2 fragRadialPos;
 out vec4 outColor;
 
 uniform DirectionalLight sun;
 uniform int debugCol;
 
+uniform sampler2D cascShadowmap;
+in vec4 fragLightProjPos;
+
 void main()
 {
   vec3 fragNorm = getNormal(fragWorldPos.x, fragWorldPos.z); 
 	vec3 toLight = normalize(-1*sun.dir);	
+  
+  vec3 projCoords = fragLightProjPos.xyz / fragLightProjPos.w;
+  projCoords = projCoords * 0.5 + 0.5;
+  float bias = max(0.05 * (1.0 - dot(fragNorm, toLight)), 0.005);
+  float shadow = 0.0;
+  float pcfDepth = texture(cascShadowmap, projCoords.xy).r;
+  shadow += (projCoords.z - bias) > pcfDepth ? 1.0 : 0.0;
+  if(projCoords.z > 1.0)
+    shadow = 0.0;
+
   float ambient = 0.2;
 	float diffuse = max(dot(toLight,fragNorm), ambient);
-  
+  diffuse = (1.0 - shadow) * diffuse + shadow * ambient;
+
   outColor = vec4(0.7,0.9,0.85,1);
   outColor.rgb = diffuse * outColor.rgb;
 }

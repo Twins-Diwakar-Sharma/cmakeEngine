@@ -15,6 +15,10 @@ GeoRenderer::GeoRenderer() : shaderProgram("geo/geo"), shadowProgram("geo/shadow
   shaderProgram.mapUniform("heightmap");
   shaderProgram.mapUniform("normalmap");
 
+  shaderProgram.mapUniform("cascShadowmap");
+  shaderProgram.mapCameraUniform("cascSunCam");
+  shaderProgram.mapUniform("cascOrtho");
+
   /*
   for(int cascIdx=0; cascIdx<n_cascades; cascIdx++)
   {
@@ -60,6 +64,14 @@ void GeoRenderer::render(GeoTerrain& terrain, Camera& cam, DirectionalLight& sun
   shaderProgram.setUniform("normalmap", 1);
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, normalmap.getTextureId()); 
+
+  int cascIdx = 2;
+  shaderProgram.setUniform("cascShadowmap", 2);
+  glActiveTexture(GL_TEXTURE2);
+  glBindTexture(GL_TEXTURE_2D, cascadedShadow.shadowFBO[cascIdx].getTextureId());
+  shaderProgram.setUniform("cascSunCam", cascadedShadow.getSunCam(cascIdx));
+  shaderProgram.setUniform("cascOrtho", cascadedShadow.getCascOrtho(cascIdx));
+
 /*
   for(int cascIdx=0; cascIdx<n_cascades; cascIdx++)
   {

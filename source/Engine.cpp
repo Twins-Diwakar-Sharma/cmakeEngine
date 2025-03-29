@@ -50,7 +50,8 @@ void Engine::initialize()
     glEnable(GL_DEPTH_TEST);
 
     sun = DirectionalLight((1.0f/255.0f)*Vec3(255,255,255));
-    sun.rotate(-20, -45, 0);
+    sun.rotate(-45, 0, 0);
+    std::cout << sun.getDirection() << std::endl;
 
     geoTerrain.initialize(64, 2);
     shadowTerrain.initialize(32, 4);
@@ -60,8 +61,8 @@ void Engine::initialize()
     objects.emplace_back(meshMap["scary"], texMap["scary"]);
     objects[0].setPosition(0,-41, 0);
 
-    texMap.emplace("heightmap", "cratorHM");
-    texMap.emplace("normalmap", "cratorNM");
+    texMap.emplace("heightmap", "pilars");
+    texMap.emplace("normalmap", "NormalMap");
     
     cascadedShadow.createShadowFBOs(512,512); 
     cascadedShadow.update(cam, sun);
@@ -93,7 +94,7 @@ void Engine::update()
     if(updateTerrain)
     {
       geoTerrain.update(cam.position);
-      shadowTerrain.update(cam.position);
+      //shadowTerrain.update(cam.position);
     }
     cascadedShadow.update(cam, sun);
   }
@@ -114,7 +115,7 @@ void Engine::render(double dt)
     glClear(GL_DEPTH_BUFFER_BIT);
     //objectRenderer.renderShadows(objects, cascadedShadow, cascadeIndex, cam);
     //shadowTerrain.update(cascadedShadow.getSunCam(cascadeIndex).position);
-    geoRenderer.renderShadows(shadowTerrain, cascadedShadow, cascadeIndex, cam, texMap["heightmap"]);
+    geoRenderer.renderShadows(geoTerrain, cascadedShadow, cascadeIndex, cam, texMap["heightmap"]);
     cascadedShadow.shadowFBO[cascadeIndex].unbind();
   }
 

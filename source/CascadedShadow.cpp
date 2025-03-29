@@ -10,7 +10,10 @@ CascadedShadow::CascadedShadow(): prevCamPos(0,0,0), prevCamSpin(1,0,0,0)
     partitions[i] = power;
     power = power * base;
   }
-
+  partitions[1] = 10;
+  partitions[2] = 50;
+  partitions[3] = 100;
+  partitions[4] = 300;
 }
 
 CascadedShadow::~CascadedShadow()
@@ -105,6 +108,13 @@ void CascadedShadow::setOrthoAndSunPos(int index, Vec3 corners[4], Vec3& origin,
     minZ = std::min(minZ, frustomCorners[i][2]);
     maxZ = std::max(maxZ, frustomCorners[i][2]);
   }
+  float adjust = 5.0;
+  minX -= adjust;
+  minY -= adjust;
+  minZ -= adjust;
+  maxX += adjust;
+  maxY += adjust;
+  maxZ += adjust;
   
   Vec3 center( (maxX + minX)/2.0, (maxY + minY)/2.0, (maxZ + minZ)/2.0 );
 
@@ -116,8 +126,7 @@ void CascadedShadow::setOrthoAndSunPos(int index, Vec3 corners[4], Vec3& origin,
   cascOrtho[index][1][3] = -(maxY + minY)/(maxY - minY);
   cascOrtho[index][2][3] = -(maxZ + minZ)/(maxZ - minZ);
 
-  float distance = (proj::far - proj::near);
-  distance = 5;
+  float distance = 2*(partitions[index+1] - partitions[index]);
   sunPos[index] = center + distance*(-1 * sun.getDirection());
 }
 

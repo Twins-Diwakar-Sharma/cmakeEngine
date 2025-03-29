@@ -74,7 +74,7 @@ float getProceduralHeight(float x, float z)
   h = h*128 + 50;
   
 
-  return h/3;
+  return h/4;
 }
 
 
@@ -129,13 +129,11 @@ uniform vec2 stripScale;
 //uniform vec2 config; shifted above
 
 out vec3 fragWorldPos;
-out vec3 testColor;;
 out vec2 fragRadialPos;
 
 
 float interpolatedHeight(float x, float z)
 {
-  testColor = vec3(0, 0, 0);
   float blocksWidth = config.x;
   float spacing = config.y;
 
@@ -172,14 +170,16 @@ float interpolatedHeight(float x, float z)
     float h1 = getProceduralHeight(x + radialPos.x, z - radialPos.y); 
     coarseH = 0.5 * (h0 + h1);
     actualH = (1.0 - maxAlpha)*actualH + maxAlpha*coarseH;
-    testColor = mix(vec3(0.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), maxAlpha);
 
   //}
 
   return actualH;
 }
 
+uniform Camera cascSunCam;
+uniform mat4 cascOrtho;
 
+out vec4 fragLightProjPos;
 
 void main()
 {
@@ -192,8 +192,10 @@ void main()
   viewPos = rotateWRTCamera(viewPos, cam);
   gl_Position = projection * vec4(viewPos, 1);
 
-
   vec2 radialPos = abs(vec2(position.x,position.z) - center);
   fragRadialPos = radialPos/scale;
-
+  
+  vec3 lightViewPos = position - cascSunCam.pos;
+  lightViewPos = rotateWRTCamera(lightViewPos, cascSunCam);
+  fragLightProjPos = cascOrtho * vec4(lightViewPos, 1);
 }
