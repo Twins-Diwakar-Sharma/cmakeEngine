@@ -37,6 +37,7 @@ public:
   Camera& getSunCam(int cascadeIndex);
   Mat4& getCascOrtho(int cascIndex);
   void createShadowFBOs(unsigned int width, unsigned int height);
+  float getCascFarPlane(int cascIndex);
 };
 
 #endif

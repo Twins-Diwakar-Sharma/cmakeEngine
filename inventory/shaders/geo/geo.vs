@@ -1,6 +1,13 @@
 #version 400
 
 
+struct DirectionalLight
+{
+	vec3 dir;
+	vec3 col;
+};
+uniform DirectionalLight sun;
+
 struct Camera 
 {
 	vec4 spin;
@@ -8,7 +15,7 @@ struct Camera
 };
 
 const float threshold = 1.20;
-const float noiseSpan = 16;
+const float noiseSpan = 64;
 
 // random value between -1 and 1
 vec2 randomVec2(vec2 st)
@@ -58,10 +65,9 @@ uniform vec2 config;
 float getProceduralHeight(float x, float z)
 {
 
-  float res = 512;
+  float res = 1024;
   vec2 pos = vec2(x,z);
-  pos = pos + vec2(res/2, res/2);
-  pos = pos/config.y;
+  //pos = pos/config.y;
   if(pos.x <= 0 || pos.x >= res || pos.y <= 0 || pos.y >= res)
   {
       return -64;
@@ -70,17 +76,19 @@ float getProceduralHeight(float x, float z)
   pos = pos/res;
 
   float h = texture(heightmap, pos).r;
+
   h = 2*h - 1.0;
   h = h*128 + 50;
   
-
-  return h/4;
+  h = h - 128;
+  
+  return h;
 }
 
 
 vec3 getNormal(float x, float y)
 {
-    float h = scale; // 0.2
+    float h = 0.2; // 0.2
     vec3 me = vec3(x,0,y);
   
     vec3 meX = vec3(x+h,0,y);
@@ -176,10 +184,12 @@ float interpolatedHeight(float x, float z)
   return actualH;
 }
 
-uniform Camera cascSunCam;
-uniform mat4 cascOrtho;
+#define n_cascades 4
+uniform Camera cascSunCam[n_cascades];
+uniform mat4 cascOrtho[n_cascades];
 
-out vec4 fragLightProjPos;
+out vec4 fragLightProjPos[n_cascades];
+out float fragDepth;
 
 void main()
 {
@@ -194,8 +204,15 @@ void main()
 
   vec2 radialPos = abs(vec2(position.x,position.z) - center);
   fragRadialPos = radialPos/scale;
+/* 
+  fragDepth = viewPos.z;
+  for(int i=0; i<n_cascades; i++)
+  {
+    vec3 lightViewPos = position - cascSunCam[i].pos;
+    lightViewPos = rotateWRTCamera(lightViewPos, cascSunCam[i]);
+    fragLightProjPos[i] = cascOrtho[i] * vec4(lightViewPos, 1);
+  }
+*/
   
-  vec3 lightViewPos = position - cascSunCam.pos;
-  lightViewPos = rotateWRTCamera(lightViewPos, cascSunCam);
-  fragLightProjPos = cascOrtho * vec4(lightViewPos, 1);
+
 }

@@ -5,16 +5,22 @@
 #include <iostream>
 #include <string>
 
+enum Tex_Type {
+  TEX_DEF, TEX_HDR
+};
+
 class Texture
 {
 private:
 	unsigned int id;
 	int width, height, channels;
-	unsigned char* data;
 	std::string name;
+  void loadDefault(std::string);
+  void loadHDR(std::string);
+  Tex_Type type=TEX_DEF;
 public:
 	Texture();
-	Texture(std::string);
+  Texture(std::string, Tex_Type type);
 	~Texture();
 	unsigned int getTextureId();
 	std::string& getName();

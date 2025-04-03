@@ -33,7 +33,8 @@ public:
     void mapUniform(std::string uniform);
     void mapCameraUniform(std::string uniform);
     void mapDirectionalLightUniform(std::string uniform);
-
+    
+    void setUniform(std::string, float);
     void setUniform(std::string, float, float);
     void setUniform(std::string, int);
     void setUniform(std::string, Vec2&);

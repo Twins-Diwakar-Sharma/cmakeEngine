@@ -8,7 +8,7 @@ struct Camera
 };
 
 const float threshold = 1.20;
-const float noiseSpan = 16;
+const float noiseSpan = 64;
 
 // random value between -1 and 1
 vec2 randomVec2(vec2 st)
@@ -58,9 +58,9 @@ uniform vec2 config;
 float getProceduralHeight(float x, float z)
 {
 
-  float res = 512;
+  float res = 256;
   vec2 pos = vec2(x,z);
-  pos = pos + vec2(res/2, res/2);
+  pos = pos;
   pos = pos/config.y;
   if(pos.x <= 0 || pos.x >= res || pos.y <= 0 || pos.y >= res)
   {
@@ -74,7 +74,7 @@ float getProceduralHeight(float x, float z)
   h = h*128 + 50;
   
 
-  return h/4;
+  return h;
 }
 
 

@@ -14,20 +14,14 @@ GeoRenderer::GeoRenderer() : shaderProgram("geo/geo"), shadowProgram("geo/shadow
   shaderProgram.mapUniform("config");
   shaderProgram.mapUniform("heightmap");
   shaderProgram.mapUniform("normalmap");
-
-  shaderProgram.mapUniform("cascShadowmap");
-  shaderProgram.mapCameraUniform("cascSunCam");
-  shaderProgram.mapUniform("cascOrtho");
-
-  /*
+  
   for(int cascIdx=0; cascIdx<n_cascades; cascIdx++)
   {
-    shaderProgram.mapUniform("cascDepth[" + std::to_string(cascIdx) + "]");
+    shaderProgram.mapUniform("cascShadowmap[" + std::to_string(cascIdx) + "]");
+    shaderProgram.mapCameraUniform("cascSunCam[" + std::to_string(cascIdx) + "]");
     shaderProgram.mapUniform("cascOrtho[" + std::to_string(cascIdx) + "]");
-    shaderProgram.mapCameraUniform("cascSunCam[" + std::to_string(cascIdx) + "]"); 
-    shaderProgram.mapUniform("cascFarPlanes[" + std::to_string(cascIdx) + "]");
+    shaderProgram.mapUniform("cascFarPlane[" + std::to_string(cascIdx) + "]");
   }
-*/
 
   shadowProgram.mapUniform("projection");
   shadowProgram.mapCameraUniform("cam");
@@ -65,24 +59,16 @@ void GeoRenderer::render(GeoTerrain& terrain, Camera& cam, DirectionalLight& sun
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, normalmap.getTextureId()); 
 
-  int cascIdx = 2;
-  shaderProgram.setUniform("cascShadowmap", 2);
-  glActiveTexture(GL_TEXTURE2);
-  glBindTexture(GL_TEXTURE_2D, cascadedShadow.shadowFBO[cascIdx].getTextureId());
-  shaderProgram.setUniform("cascSunCam", cascadedShadow.getSunCam(cascIdx));
-  shaderProgram.setUniform("cascOrtho", cascadedShadow.getCascOrtho(cascIdx));
-
-/*
-  for(int cascIdx=0; cascIdx<n_cascades; cascIdx++)
+  for(int cascIdx = 0; cascIdx<n_cascades; cascIdx++)
   {
-    shaderProgram.setUniform("cascDepth[" + std::to_string(cascIdx) + "]", 2 + cascIdx); 
+    shaderProgram.setUniform("cascShadowmap[" + std::to_string(cascIdx) + "]", 2 + cascIdx);
     glActiveTexture(GL_TEXTURE2 + cascIdx);
     glBindTexture(GL_TEXTURE_2D, cascadedShadow.shadowFBO[cascIdx].getTextureId());
-    shaderProgram.setUniform("cascOrtho[" + std::to_string(cascIdx) + "]", cascadedShadow.getCascOrtho(cascIdx)); 
-    shaderProgram.setUniform("cascSunCam[" + std::to_string(cascIdx) + "]", cascadedShadow.getSunCam(cascIdx)); 
-    shaderProgram.setUniform("cascFarPlanes[" + std::to_string(cascIdx) + "]", cascadedShadow.farPlanes[cascIdx]);
+    shaderProgram.setUniform("cascSunCam[" + std::to_string(cascIdx) + "]", cascadedShadow.getSunCam(cascIdx));
+    shaderProgram.setUniform("cascOrtho[" + std::to_string(cascIdx) + "]", cascadedShadow.getCascOrtho(cascIdx));
+    shaderProgram.setUniform("cascFarPlane[" + std::to_string(cascIdx) + "]", cascadedShadow.getCascFarPlane(cascIdx));
   }
-*/
+
   terrain.gridFull.bind();
   shaderProgram.setUniform("worldPos", terrain.layers[0].pos);
   shaderProgram.setUniform("center", terrain.layers[0].pos);

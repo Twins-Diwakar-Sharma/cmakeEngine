@@ -10,10 +10,6 @@ CascadedShadow::CascadedShadow(): prevCamPos(0,0,0), prevCamSpin(1,0,0,0)
     partitions[i] = power;
     power = power * base;
   }
-  partitions[1] = 10;
-  partitions[2] = 50;
-  partitions[3] = 100;
-  partitions[4] = 300;
 }
 
 CascadedShadow::~CascadedShadow()
@@ -25,7 +21,12 @@ void CascadedShadow::update(Camera& cam, DirectionalLight& sun)
   if(firstUpdate)
   {
     partitions[0] = proj::near;
-    partitions[n_cascades] = proj::far;
+    partitions[1] = 70;
+    partitions[2] = 150;
+    partitions[3] = proj::far/2.0;
+    partitions[4] = proj::far;
+
+    //partitions[n_cascades] = proj::far;
     firstUpdate = false;
   }
 
@@ -89,11 +90,23 @@ void CascadedShadow::setOrthoAndSunPos(int index, Vec3 corners[4], Vec3& origin,
     unitVectors[i] = (1.0f/lenCorners[i]) * (corners[i] - origin);
   }
   Vec3 frustomCorners[8];
+  Vec3 center(0,0,0);
   for(int i=0; i<4; i++)
   {
     frustomCorners[i] = (partitions[index]/proj::near) * (corners[i] - origin)   + origin;
     frustomCorners[i+4] = (partitions[index+1]/proj::near) * (corners[i] - origin)   + origin;
+    center = center + frustomCorners[i] + frustomCorners[i+4];
   }
+  center = (1.0/8.0) * center;
+  
+  // convert corners to light space (rotate)
+  for(int i=0; i<8; i++)
+  {
+    Quat cornerQuat(0, frustomCorners[i][0]-origin[0], frustomCorners[i][1]-origin[1], frustomCorners[i][2]-origin[2]);
+    cornerQuat = (~sun.getSpin()) * cornerQuat * sun.getSpin();
+    frustomCorners[i] = Vec3(cornerQuat[1], cornerQuat[2], cornerQuat[3]) + origin;
+  }
+
 
   float minX = frustomCorners[0][0], maxX = minX;
   float minY = frustomCorners[0][1], maxY = minY;
@@ -108,7 +121,7 @@ void CascadedShadow::setOrthoAndSunPos(int index, Vec3 corners[4], Vec3& origin,
     minZ = std::min(minZ, frustomCorners[i][2]);
     maxZ = std::max(maxZ, frustomCorners[i][2]);
   }
-  float adjust = 5.0;
+  float adjust = 0.0;
   minX -= adjust;
   minY -= adjust;
   minZ -= adjust;
@@ -116,7 +129,6 @@ void CascadedShadow::setOrthoAndSunPos(int index, Vec3 corners[4], Vec3& origin,
   maxY += adjust;
   maxZ += adjust;
   
-  Vec3 center( (maxX + minX)/2.0, (maxY + minY)/2.0, (maxZ + minZ)/2.0 );
 
   cascOrtho[index][0][0] = 2.0f/(maxX - minX);
   cascOrtho[index][1][1] = 2.0f/(maxY - minY);
@@ -126,7 +138,14 @@ void CascadedShadow::setOrthoAndSunPos(int index, Vec3 corners[4], Vec3& origin,
   cascOrtho[index][1][3] = -(maxY + minY)/(maxY - minY);
   cascOrtho[index][2][3] = -(maxZ + minZ)/(maxZ - minZ);
 
-  float distance = 2*(partitions[index+1] - partitions[index]);
+  //Vec3 center( (maxX + minX)/2.0, (maxY + minY)/2.0, (maxZ + minZ)/2.0 );
+  center = Vec3( (maxX + minX)/2.0, (maxY + minY)/2.0, (maxZ + minZ)/2.0 );
+
+  float distance = (partitions[index+1] - partitions[index]);
+  //Quat centerQuat(0, (maxX + minX)/2.0, (maxY + minY)/2.0, (maxZ + minZ)/2.0);
+  //centerQuat = sun.getSpin() * centerQuat * (~sun.getSpin());
+  //Vec3 center(centerQuat[1], centerQuat[2], centerQuat[3]);
+  distance = distance/2;
   sunPos[index] = center + distance*(-1 * sun.getDirection());
 }
 
@@ -148,4 +167,9 @@ void CascadedShadow::createShadowFBOs(unsigned int width, unsigned int height)
   {
     shadowFBO[i].create(width, height);
   }
+}
+
+float CascadedShadow::getCascFarPlane(int cascIndex)
+{
+  return partitions[cascIndex+1];
 }

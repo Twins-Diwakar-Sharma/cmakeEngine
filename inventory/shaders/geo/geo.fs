@@ -56,10 +56,10 @@ uniform vec2 config;
 float getProceduralHeight(float x, float z)
 {
 
-  float res = 512;
+  float res = 1024;
   vec2 pos = vec2(x,z);
-  pos = pos + vec2(res/2, res/2);
-  pos = pos/config.y;
+  pos = pos;
+  //pos = pos/config.y;
   if(pos.x <= 0 || pos.x >= res || pos.y <= 0 || pos.y >= res)
   {
       return -64;
@@ -72,13 +72,13 @@ float getProceduralHeight(float x, float z)
   h = h*128 + 50;
   
 
-  return h/4;
+  return h;
 }
 
 
 vec3 getNormal(float x, float y)
 {
-    float h = 0.2; // 0.2
+    float h = 1.0/256.0; // 0.2
     vec3 me = vec3(x,0,y);
   
     vec3 meX = vec3(x+h,0,y);
@@ -126,27 +126,68 @@ out vec4 outColor;
 uniform DirectionalLight sun;
 uniform int debugCol;
 
-uniform sampler2D cascShadowmap;
-in vec4 fragLightProjPos;
+#define n_cascades 4
+uniform sampler2D cascShadowmap[n_cascades];
+uniform float cascFarPlane[n_cascades];
+in vec4 fragLightProjPos[n_cascades];
+in float fragDepth;
+
 
 void main()
 {
   vec3 fragNorm = getNormal(fragWorldPos.x, fragWorldPos.z); 
 	vec3 toLight = normalize(-1*sun.dir);	
-  
-  vec3 projCoords = fragLightProjPos.xyz / fragLightProjPos.w;
+  int cascIdx = n_cascades-1;
+/*
+  for(int i=0; i<n_cascades; i++)
+  {
+    if(abs(fragDepth) <= cascFarPlane[i])
+    {
+      cascIdx = i;
+      break;
+    }
+  }
+  //cascIdx = 2;
+  vec3 projCoords = fragLightProjPos[cascIdx].xyz / fragLightProjPos[cascIdx].w;
   projCoords = projCoords * 0.5 + 0.5;
   float bias = max(0.05 * (1.0 - dot(fragNorm, toLight)), 0.005);
   float shadow = 0.0;
-  float pcfDepth = texture(cascShadowmap, projCoords.xy).r;
+  float pcfDepth = texture(cascShadowmap[cascIdx], projCoords.xy).r;
   shadow += (projCoords.z - bias) > pcfDepth ? 1.0 : 0.0;
   if(projCoords.z > 1.0)
     shadow = 0.0;
+*/
+
+  float shadow = 0;
+
+
+  float stepScale = 5;
+  float step = dot(-sun.dir, vec3(0,1,0)) * stepScale + 2;
+  
+  int num_steps = 5;
+  shadow = 0;
+  vec3 position = fragWorldPos;
+  float bias = max(0.05 * (1.0 - dot(fragNorm, toLight)), 0.005);
+  for(int i=0; i<num_steps; i++)
+  {
+    vec3 toSun = -sun.dir;
+    vec3 checkPos = position + step*toSun;
+    checkPos.y = getProceduralHeight(checkPos.x, checkPos.z);    
+    if(checkPos.y >= position.y+bias)
+    {
+      shadow = 1;
+      break;
+    }
+  }
+
 
   float ambient = 0.2;
 	float diffuse = max(dot(toLight,fragNorm), ambient);
-  diffuse = (1.0 - shadow) * diffuse + shadow * ambient;
+  float dotSky = max(dot(vec3(0,1,0), fragNorm), ambient) * 0.2;
+  diffuse = (1.0 - shadow) * diffuse + shadow * dotSky;
 
   outColor = vec4(0.7,0.9,0.85,1);
   outColor.rgb = diffuse * outColor.rgb;
+
+
 }

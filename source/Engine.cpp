@@ -47,25 +47,26 @@ void Engine::initialize()
 {
     proj::setPerspective(60.0f,0.1f,1000.0f,window.getAspect());
     glClearColor(0.9f, 0.9f, 0.95f, 1.0f);
+    //glClearColor(0.01f, 0.01f, 0.01f, 1.0f);
     glEnable(GL_DEPTH_TEST);
 
     sun = DirectionalLight((1.0f/255.0f)*Vec3(255,255,255));
-    sun.rotate(-45, 0, 0);
-    std::cout << sun.getDirection() << std::endl;
+    sun.rotate(-30, 90, 0);
 
-    geoTerrain.initialize(64, 2);
-    shadowTerrain.initialize(32, 4);
+    geoTerrain.initialize(64, 4);
+    //shadowTerrain.initialize(32, 4);
 
     meshMap.emplace("scary", "scary");
-    texMap.emplace("scary", "scaryBrown");
+    texMap.try_emplace("scary", "scaryBrown", TEX_DEF);
     objects.emplace_back(meshMap["scary"], texMap["scary"]);
     objects[0].setPosition(0,-41, 0);
 
-    texMap.emplace("heightmap", "pilars");
-    texMap.emplace("normalmap", "NormalMap");
+    texMap.try_emplace("heightmap", "sweden16", TEX_HDR);
+    texMap.try_emplace("normalmap", "NormalMap", TEX_DEF);
     
-    cascadedShadow.createShadowFBOs(512,512); 
+    cascadedShadow.createShadowFBOs(1024,1024); 
     cascadedShadow.update(cam, sun);
+
 }
 
 void Engine::input()
@@ -106,6 +107,7 @@ void Engine::update()
 
 void Engine::render(double dt)
 {
+/*  
   glEnable(GL_DEPTH_TEST);
   for(int cascadeIndex = 0; cascadeIndex < n_cascades; cascadeIndex++)
   {
@@ -118,7 +120,7 @@ void Engine::render(double dt)
     geoRenderer.renderShadows(geoTerrain, cascadedShadow, cascadeIndex, cam, texMap["heightmap"]);
     cascadedShadow.shadowFBO[cascadeIndex].unbind();
   }
-
+*/
   auto [winW,winH] = window.getDimensions();
   glViewport(0,0,winW,winH);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -128,13 +130,13 @@ void Engine::render(double dt)
   geoRenderer.render(geoTerrain, cam, sun, texMap["heightmap"], texMap["normalmap"], cascadedShadow);
   if(wireframe)
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
+/*
   glDisable(GL_DEPTH_TEST);
   guiRenderer.render(guiQuad,cascadedShadow.shadowFBO[0].getTextureId(), Vec2(-1.0f+0.1f, 1.0f-0.1f));
   guiRenderer.render(guiQuad,cascadedShadow.shadowFBO[1].getTextureId(), Vec2(-1.0f+0.31f, 1.0f-0.1f));
   guiRenderer.render(guiQuad,cascadedShadow.shadowFBO[2].getTextureId(), Vec2(-1.0f+0.1f, 1.0f-0.31f));
   guiRenderer.render(guiQuad,cascadedShadow.shadowFBO[3].getTextureId(), Vec2(-1.0f+0.31f,1.0f-0.31f));
-
+*/
   window.swap();
 
 }
