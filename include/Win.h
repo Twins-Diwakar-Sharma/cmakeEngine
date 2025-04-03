@@ -5,7 +5,12 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <tuple>
-//#include "Projection.h"
+#include "Projection.h"
+//
+
+#ifndef DISPLAY_SERVER
+#define DISPLAY_SERVER "default"
+#endif
 
 class Win
 {

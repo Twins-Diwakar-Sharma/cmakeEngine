@@ -88,3 +88,9 @@ Texture::Texture(std::string name, Tex_Type type)
   }
 }
 
+Texture::Texture(std::string name)
+{
+	std::string path = "inventory/textures/" + name + ".png";
+	this->name = name;
+  loadDefault(path);
+}

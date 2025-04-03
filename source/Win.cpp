@@ -14,7 +14,7 @@ Win::Win()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    win = glfwCreateWindow(width, height, title, NULL, NULL);
+    win = glfwCreateWindow(width, height, title, glfwGetPrimaryMonitor(), NULL);
     if(win == NULL)
     {
         std::cerr<< " Broken Window :("<<std::endl;
@@ -29,9 +29,16 @@ Win::Win()
 
     glfwSetFramebufferSizeCallback(win,resize);
 
-    //glfwSetWindowPos(win,0,0);
-    glfwSetInputMode(win,GLFW_CURSOR,GLFW_CURSOR_HIDDEN);
-
+    glfwSetWindowPos(win,0,0);
+    std::string displayServer = std::string(DISPLAY_SERVER);
+    if(displayServer.compare("wayland") == 0)
+    {
+      glfwSetInputMode(win,GLFW_CURSOR,GLFW_CURSOR_DISABLED);
+    }
+    else
+    {
+      glfwSetInputMode(win,GLFW_CURSOR,GLFW_CURSOR_HIDDEN);
+    }
 }
 
 Win::~Win()
@@ -42,7 +49,7 @@ void Win::resize(GLFWwindow* w, int width, int height)
     Win::width = width;
     Win::height = height;
     glViewport(0,0,width,height);
-    //proj::setPerspective(proj::fov,proj::near,proj::far,(float)width/height);
+    proj::setPerspective(proj::fov,proj::near,proj::far,(float)width/height);
 }
 
 bool Win::close()

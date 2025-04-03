@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.31.4)
+cmake_minimum_required(VERSION 3.29.2)
 
 project(GLFWTest VERSION 1.0)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -14,6 +14,9 @@ elseif(WIN32)
   add_definitions(-Dcmakemacro="Windows")
 endif()
 
+set(DISPLAY_SERVER "default" CACHE STRING "Display manager in linux: x11 or wayland")
+message("Display Server is : ${DISPLAY_SERVER}")
+add_definitions(-DDISPLAY_SERVER="${DISPLAY_SERVER}")
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 
@@ -69,6 +72,16 @@ set(
   ${INC_DIR}/CascadedShadow.h
 )
 
+
+if(WIN32)
+  set(
+    HEADER_FILES 
+    ${HEADER_FILES}
+    ${INC_DIR}/GLFW/glfw3.h
+    ${INC_DIR}/GLFW/glfw3native.h
+  )
+endif()
+
 # can use this to pass config settings from cmake to source tree
 # configure_file(${INC_DIR}/Config.h.in ${INC_DIR}/Config.h)
 
@@ -87,19 +100,38 @@ link_directories(${CMAKE_SOURCE_DIR}/library)
 
 #OpenGL
 find_package(OpenGL REQUIRED)
-
-#GLFW: NOTE: find_package does not works for libraries that are not installed 
-set(GLFW_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/include/GLFW")
-include_directories(${GLFW_INCLUDE_DIRS})
-set(GLFW_LIBRARIES "${CMAKE_SOURCE_DIR}/library/glfw3.lib")
-
-# Put all libraries into a variable
-set(LIBS ${GLFW_LIBRARIES} ${OPENGL_LIBRARY})
+if(WIN32)
+  #GLFW: NOTE: find_package does not works for libraries that are not installed 
+  set(GLFW_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/include/GLFW")
+  include_directories(${GLFW_INCLUDE_DIRS})
+  set(GLFW_LIBRARIES "${CMAKE_SOURCE_DIR}/library/glfw3.lib")
+  # Put all libraries into a variable
+  set(LIBS ${GLFW_LIBRARIES} ${OPENGL_LIBRARY})
+  # Put all includes into a variable
+  set(INCS ${INC_DIR} ${GLFW_INCLUDE_DIRS})
+elseif(UNIX)
+  find_package(glfw3 REQUIRED)
+  set(LIBS glfw ${OPENGL_LIBRARY})
+  set(INCS ${INC_DIR} ${GLFW_INCLUDE_DIRS})
+  if(${DISPLAY_SERVER} MATCHES "wayland")
+    find_library(LIB_WAYLAND_CURSOR
+      NAMES libwayland-cursor libwayland-cursor.so wayland-cursor 
+      )
+    find_library(LIB_DL
+      NAMES libdl libdl.so 
+      )
+    set(LIBS ${LIBS} ${LIB_WAYLAND_CURSOR} ${LIB_DL})
+  elseif(${DISPLAY_SERVER} MATCHES "x11")
+    find_package(x11 REQUIRED)
+    set(LIBS ${LIBS} ${X11_LIBRARIES})
+    set(INCS ${INCS} ${X11_INCLUDE_DIR})
+  endif()
+endif()
 
 # Define the link libraries
 target_link_libraries(${PROJECT_NAME} ${LIBS})
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${INC_DIR} ${GLFW_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} PUBLIC ${INCS})
 
 # Copy Directories to bin
 add_custom_target(copy-runtime-files ALL

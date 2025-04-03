@@ -21,6 +21,7 @@ private:
 public:
 	Texture();
   Texture(std::string, Tex_Type type);
+  Texture(std::string);
 	~Texture();
 	unsigned int getTextureId();
 	std::string& getName();

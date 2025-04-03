@@ -57,12 +57,12 @@ void Engine::initialize()
     //shadowTerrain.initialize(32, 4);
 
     meshMap.emplace("scary", "scary");
-    texMap.try_emplace("scary", "scaryBrown", TEX_DEF);
+    texMap.emplace("scary", "scaryBrown");
     objects.emplace_back(meshMap["scary"], texMap["scary"]);
-    objects[0].setPosition(0,-41, 0);
+    objects[0].setPosition(0, 0, 0);
 
-    texMap.try_emplace("heightmap", "sweden16", TEX_HDR);
-    texMap.try_emplace("normalmap", "NormalMap", TEX_DEF);
+    texMap.emplace("heightmap", "heightmap");
+    texMap.emplace("normalmap", "NormalMap");
     
     cascadedShadow.createShadowFBOs(1024,1024); 
     cascadedShadow.update(cam, sun);
