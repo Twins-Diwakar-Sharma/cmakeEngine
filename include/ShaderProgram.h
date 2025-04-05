@@ -1,5 +1,5 @@
-#ifndef H_SHADER_PROGRAM_H
-#define H_SHADER_PROGRAM_H
+#ifndef SHADER_PROGRAM
+#define SHADER_PROGRAM
 
 #include <string>
 #include <fstream>
@@ -33,8 +33,7 @@ public:
     void mapUniform(std::string uniform);
     void mapCameraUniform(std::string uniform);
     void mapDirectionalLightUniform(std::string uniform);
-    
-    void setUniform(std::string, float);
+
     void setUniform(std::string, float, float);
     void setUniform(std::string, int);
     void setUniform(std::string, Vec2&);
@@ -46,8 +45,11 @@ public:
     void setUniform(std::string, Mat4&);
     void setUniform(std::string name, Camera& cam);
     void setUniform(std::string name, DirectionalLight& light);
+    void setCameraUniform(std::string name, Quat& sunSpin, Vec3& sunPos);
     void setUniform(std::string, Vec4&);
     void setUniform(std::string, Vec4&&);
+
+
 };
 
 #endif

@@ -49,8 +49,6 @@ set(INC_DIR ${CMAKE_SOURCE_DIR}/include)
 set(
   HEADER_FILES 
   ${INC_DIR}/glad/glad.h
-  ${INC_DIR}/GLFW/glfw3.h
-  ${INC_DIR}/GLFW/glfw3native.h
   ${INC_DIR}/KHR/khrplatform.h
   ${INC_DIR}/Engine.h
   ${INC_DIR}/Win.h
@@ -96,11 +94,11 @@ add_custom_command(
 )
 
 
-link_directories(${CMAKE_SOURCE_DIR}/library)
 
 #OpenGL
 find_package(OpenGL REQUIRED)
 if(WIN32)
+  link_directories(${CMAKE_SOURCE_DIR}/library)
   #GLFW: NOTE: find_package does not works for libraries that are not installed 
   set(GLFW_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/include/GLFW")
   include_directories(${GLFW_INCLUDE_DIRS})
@@ -140,3 +138,4 @@ add_custom_target(copy-runtime-files ALL
 
 # use following command
 # cmake -G "MinGW Makefiles" -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ ..
+# cmake -G "Unix Makefiles" -DDISPLAY_SERVER=wayland .. 

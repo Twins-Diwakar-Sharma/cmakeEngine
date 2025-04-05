@@ -133,22 +133,26 @@ void ShaderProgram::mapUniform(std::string uniformName)
 
 void ShaderProgram::mapCameraUniform(std::string camName)
 {
-	const char* cUniformSpin = (camName + ".spin").c_str();
-	const char* cUniformPos = (camName + ".pos").c_str();
-	int spinLoc = glGetUniformLocation(programID, cUniformSpin);
-	int posLoc = glGetUniformLocation(programID, cUniformPos);
-	uniformMap.insert(std::pair <std::string,int> (camName+".spin", spinLoc));
-	uniformMap.insert(std::pair <std::string,int> (camName+".pos", posLoc));
+    std::string spinName = camName + ".spin";
+    std::string posName = camName + ".pos";
+    const char* cSpinName = spinName.c_str();
+    const char* cPosName = posName.c_str();
+    int spinLoc = glGetUniformLocation(programID, cSpinName);
+    int posLoc = glGetUniformLocation(programID, cPosName);
+    uniformMap.insert({spinName, spinLoc});
+    uniformMap.insert({posName, posLoc});
 }
 
 void ShaderProgram::mapDirectionalLightUniform(std::string lightName)
 {
-	const char* cUniformDir = (lightName + ".dir").c_str();
-	const char* cUniformPos = (lightName + ".col").c_str();
-	int dirLoc = glGetUniformLocation(programID, cUniformDir);
-	int posLoc = glGetUniformLocation(programID,cUniformPos);
-	uniformMap.insert(std::pair <std::string,int> (lightName + ".dir", dirLoc));
-	uniformMap.insert(std::pair <std::string,int> (lightName+".col", posLoc));
+	std::string colName = lightName + ".col";
+	std::string dirName = lightName + ".dir";
+	const char* cColName = colName.c_str();
+	const char* cDirName = dirName.c_str();
+	int colLoc = glGetUniformLocation(programID, cColName);
+	int dirLoc = glGetUniformLocation(programID, cDirName);
+	uniformMap.insert({colName, colLoc});
+	uniformMap.insert({dirName, dirLoc});
 }
 
 
@@ -162,20 +166,14 @@ void ShaderProgram::setUniform(std::string uniformName, int value)
 	glUniform1i(uniformMap[uniformName], value);
 }
 
-void ShaderProgram::setUniform(std::string uniformName, float value)
-{
-  glUniform1f(uniformMap[uniformName], value);
-}
-
 void ShaderProgram::setUniform(std::string name, Vec2& v)
 {
 	glUniform2f(uniformMap[name], v[0], v[1]);
 }
 
-
 void ShaderProgram::setUniform(std::string name, Vec2&& v)
 {
-	glUniform2f(uniformMap[name], v[0], v[1]);
+  glUniform2f(uniformMap[name], v[0], v[1]);
 }
 
 void ShaderProgram::setUniform(std::string name, Vec3& v)
@@ -186,6 +184,17 @@ void ShaderProgram::setUniform(std::string name, Vec3& v)
 void ShaderProgram::setUniform(std::string name, Vec3&& v)
 {
 	glUniform3f(uniformMap[name], v[0], v[1], v[2]);
+}
+
+void ShaderProgram::setUniform(std::string name, Quat& q)
+{
+    glUniform4f(uniformMap[name], q[1], q[2], q[3], q[0]);
+}
+
+
+void ShaderProgram::setUniform(std::string name, Quat&& q)
+{
+    glUniform4f(uniformMap[name], q[1], q[2], q[3], q[0]);
 }
 
 void ShaderProgram::setUniform(std::string name, Mat4& m)
@@ -202,6 +211,7 @@ void ShaderProgram::setUniform(std::string name, Camera& cam)
 	glUniform3f(uniformMap[pos], cam.position[0], cam.position[1], cam.position[2]);	
 }
 
+
 void ShaderProgram::setUniform(std::string name, DirectionalLight& light)
 {
 	std::string dirName = name + ".dir";
@@ -212,3 +222,26 @@ void ShaderProgram::setUniform(std::string name, DirectionalLight& light)
 	glUniform3f(uniformMap[dirName],  dir[0], dir[1], dir[2]);
 	glUniform3f(uniformMap[colName], col[0], col[1], col[2]);	
 }
+
+
+
+void ShaderProgram::setCameraUniform(std::string name, Quat& sunSpin, Vec3& sunPos)
+{
+	std::string spin = name + ".spin";
+	std::string pos = name + ".pos";
+
+	glUniform4f(uniformMap[spin],  sunSpin[1], sunSpin[2], sunSpin[3], sunSpin[0]);
+	glUniform3f(uniformMap[pos], sunPos[0], sunPos[1], sunPos[2]);	
+}
+
+
+void ShaderProgram::setUniform(std::string name, Vec4& v)
+{
+	glUniform4f(uniformMap[name], v[0], v[1], v[2], v[3]);
+}
+
+void ShaderProgram::setUniform(std::string name, Vec4&& v)
+{
+	glUniform4f(uniformMap[name], v[0], v[1], v[2], v[3]);
+}
+

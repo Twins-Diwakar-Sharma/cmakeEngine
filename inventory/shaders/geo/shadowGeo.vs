@@ -57,22 +57,20 @@ uniform int scale;
 uniform vec2 config;
 float getProceduralHeight(float x, float z)
 {
-
-  float res = 256;
+  float res = 1024.0;
   vec2 pos = vec2(x,z);
-  pos = pos;
-  pos = pos/config.y;
-  if(pos.x <= 0 || pos.x >= res || pos.y <= 0 || pos.y >= res)
+  //pos = pos/config.y;
+  if(pos.x <= 0.0 || pos.x >= res || pos.y <= 0.0 || pos.y >= res)
   {
-      return -64;
+      return -64.0;
   }
 
   pos = pos/res;
 
   float h = texture(heightmap, pos).r;
+
   h = 2*h - 1.0;
-  h = h*128 + 50;
-  
+  h = h*128;
 
   return h;
 }
