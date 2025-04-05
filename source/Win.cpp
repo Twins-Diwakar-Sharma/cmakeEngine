@@ -14,7 +14,7 @@ Win::Win()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    win = glfwCreateWindow(width, height, title, glfwGetPrimaryMonitor(), NULL);
+    win = glfwCreateWindow(width, height, title, NULL, NULL);
     if(win == NULL)
     {
         std::cerr<< " Broken Window :("<<std::endl;

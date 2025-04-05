@@ -65,12 +65,12 @@ uniform vec2 config;
 float getProceduralHeight(float x, float z)
 {
 
-  float res = 1024;
+  float res = 1024.0;
   vec2 pos = vec2(x,z);
   //pos = pos/config.y;
-  if(pos.x <= 0 || pos.x >= res || pos.y <= 0 || pos.y >= res)
+  if(pos.x <= 0.0 || pos.x >= res || pos.y <= 0.0 || pos.y >= res)
   {
-      return -64;
+      return -64.0;
   }
 
   pos = pos/res;
@@ -78,31 +78,11 @@ float getProceduralHeight(float x, float z)
   float h = texture(heightmap, pos).r;
 
   h = 2*h - 1.0;
-  h = h*128 + 50;
-  
-  h = h - 128;
-  
+  h = h*128;
+
   return h;
 }
 
-
-vec3 getNormal(float x, float y)
-{
-    float h = 0.2; // 0.2
-    vec3 me = vec3(x,0,y);
-  
-    vec3 meX = vec3(x+h,0,y);
-    vec3 meZ = vec3(x,0,y+h);
-
-    me.y = getProceduralHeight(me.x,me.z);
-    meX.y = getProceduralHeight(meX.x,meX.z);
-    meZ.y = getProceduralHeight(meZ.x,meZ.z);
-
-    vec3 ans = normalize(cross(meZ-me,meX-me));
-
-    return ans;
-
-}
 
 vec4 quatRotate(inout vec4 action, inout vec4 victim)
 {
@@ -184,12 +164,25 @@ float interpolatedHeight(float x, float z)
   return actualH;
 }
 
+
+vec3 getNormal(vec3 pos)
+{
+    float delta = 1.0;
+    float dfdz = (interpolatedHeight(pos.x, pos.z+delta) - pos.y)/delta;
+    float dfdx = (interpolatedHeight(pos.x+delta, pos.z) - pos.y)/delta;
+    
+    vec3 ans = normalize(vec3(-dfdx, 1.0, -dfdz));
+    return ans;
+}
+
 #define n_cascades 4
 uniform Camera cascSunCam[n_cascades];
 uniform mat4 cascOrtho[n_cascades];
 
 out vec4 fragLightProjPos[n_cascades];
 out float fragDepth;
+
+//out vec3 fragNorm;
 
 void main()
 {
@@ -204,6 +197,8 @@ void main()
 
   vec2 radialPos = abs(vec2(position.x,position.z) - center);
   fragRadialPos = radialPos/scale;
+
+
 /* 
   fragDepth = viewPos.z;
   for(int i=0; i<n_cascades; i++)

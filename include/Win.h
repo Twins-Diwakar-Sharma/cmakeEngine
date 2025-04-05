@@ -6,10 +6,9 @@
 #include <iostream>
 #include <tuple>
 #include "Projection.h"
-//
 
 #ifndef DISPLAY_SERVER
-#define DISPLAY_SERVER "default"
+#define DISPLAY_SERVER "win"
 #endif
 
 class Win
