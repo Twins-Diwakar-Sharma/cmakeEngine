@@ -41,6 +41,13 @@ void Texture::loadHDR(std::string path)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	stbi_set_flip_vertically_on_load(true);
 
+
+  stbi_ldr_to_hdr_scale(1.0f);
+  stbi_ldr_to_hdr_gamma(1.0f);
+
+  stbi_hdr_to_ldr_scale(1.0f);
+  stbi_hdr_to_ldr_gamma(1.0f);
+
 	 float * data = stbi_loadf(cTarget, &width, &height, &channels, 0);
 
 	if (data == nullptr)
@@ -50,7 +57,14 @@ void Texture::loadHDR(std::string path)
 
   std::cout << "width " << width << " height: " << height << " channels : " << channels << std::endl;
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RED, GL_FLOAT, data);
+  int format = GL_RED;
+  if(channels == 1)
+    format = GL_RED;
+  else if(channels == 3)
+    format = GL_RGB;
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, format, GL_FLOAT, data);
+
 	glGenerateMipmap(GL_TEXTURE_2D);
 
 	stbi_image_free(data);

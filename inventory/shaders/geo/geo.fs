@@ -77,18 +77,28 @@ float getProceduralHeight(float x, float z)
   return h;
 }
 
+uniform sampler2D normalmap;
+
 vec3 getNormal(vec3 pos)
 {
-    float delta = 1.0;
-    float dfdz = (getProceduralHeight(pos.x, pos.z+delta) - pos.y)/delta;
-    float dfdx = (getProceduralHeight(pos.x+delta, pos.z) - pos.y)/delta;
-    
-    vec3 ans = normalize(vec3(-dfdx, 1.0, -dfdz));
-    return ans;
+
+  float res = 1024.0;
+  //pos = pos/config.y;
+  if(pos.x <= 0.0 || pos.x >= res || pos.z <= 0.0 || pos.z >= res)
+  {
+      return vec3(0,1,0);
+  }
+
+  pos.xz = pos.xz/res;
+
+
+  vec3 norm = texture(normalmap, pos.xz).rgb; 
+  norm = 2.0 * norm - 1.0;
+  
+  return normalize(norm);
 }
 
 
-uniform sampler2D normalmap;
 
 /*
 uniform int scale;
@@ -183,6 +193,5 @@ void main()
 
   outColor = vec4(0.7,0.9,0.85,1);
   outColor.rgb = diffuse * outColor.rgb;
-
 
 }
