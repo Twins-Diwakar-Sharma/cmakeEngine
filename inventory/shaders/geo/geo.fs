@@ -189,7 +189,7 @@ void main()
   float ambient = 0.2;
 	float diffuse = max(dot(toLight,fragNorm), ambient);
   float dotSky = max(dot(vec3(0,1,0), fragNorm), ambient) * 0.2;
-  diffuse = (1.0 - shadow) * diffuse + shadow * dotSky;
+  //diffuse = (1.0 - shadow) * diffuse + shadow * dotSky;
 
   outColor = vec4(0.7,0.9,0.85,1);
   outColor.rgb = diffuse * outColor.rgb;

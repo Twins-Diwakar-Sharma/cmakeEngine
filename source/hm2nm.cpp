@@ -17,6 +17,10 @@ Mat3 g_sobelZ(-1.0, -2.0, -1.0,
                0.0,  0.0,  0.0,
                1.0,  2.0,  1.0);
 
+Mat3 g_guassian(1.0, 2.0, 1.0,
+                2.0, 4.0, 2.0,
+                1.0, 2.0, 1.0);
+
 
 Vec3 getPositionClamped(int row, int col, int width, int height, int channels, float* data)
 {
@@ -28,7 +32,7 @@ Vec3 getPositionClamped(int row, int col, int width, int height, int channels, f
   float res = 1024.0;
 
   int index = (row * width + col) * channels;  
-  float y = data[index*channels];
+  float y = data[index];
   y = y*256.0;  
   float x = (res*col/width);
   float z = (res*row/height);
@@ -57,15 +61,16 @@ Vec3 simpleNormal(int row, int col, int width, int height, int channels, float* 
 Vec3 sobelNormal(int row, int col, int width, int height, int channels, float* data)
 {
   Vec3 poses[3][3];
-  poses[0][0] = getPositionClamped(row-1, col-1, width, height, channels, data);
-  poses[0][1] = getPositionClamped(row, col-1, width, height, channels, data);
-  poses[0][2] = getPositionClamped(row+1, col-1, width, height, channels, data);
-  poses[1][0] = getPositionClamped(row-1, col, width, height, channels, data);
+  int delta = 1;
+  poses[0][0] = getPositionClamped(row-delta, col-delta, width, height, channels, data);
+  poses[0][1] = getPositionClamped(row, col-delta, width, height, channels, data);
+  poses[0][2] = getPositionClamped(row+delta, col-delta, width, height, channels, data);
+  poses[1][0] = getPositionClamped(row-delta, col, width, height, channels, data);
   poses[1][1] = getPositionClamped(row, col, width, height, channels, data);
-  poses[1][2] = getPositionClamped(row+1, col, width, height, channels, data);
-  poses[2][0] = getPositionClamped(row-1, col+1, width, height, channels, data);
-  poses[2][1] = getPositionClamped(row, col+1, width, height, channels, data);
-  poses[2][2] = getPositionClamped(row+1, col+1, width, height, channels, data);
+  poses[1][2] = getPositionClamped(row+delta, col, width, height, channels, data);
+  poses[2][0] = getPositionClamped(row-delta, col+delta, width, height, channels, data);
+  poses[2][1] = getPositionClamped(row, col+delta, width, height, channels, data);
+  poses[2][2] = getPositionClamped(row+delta, col+delta, width, height, channels, data);
   
   float dx=0, dz=0;
   for(int i=0; i<3; i++)
@@ -82,6 +87,49 @@ Vec3 sobelNormal(int row, int col, int width, int height, int channels, float* d
 
 
   return normal;
+}
+
+Vec3 getNormal(int row, int col, int width, int height, int channels, float* data)
+{
+
+  row = row < 0 ? 0 : row;
+  row = row >= width ? width-1 : row;
+  col = col < 0 ? 0 : col;
+  col = col >= height ? height-1 : col;
+
+  int index = (row * width + col) * channels;  
+  
+  return Vec3(data[index], data[index+1], data[index+2]);
+}
+
+Vec3 guassianBlur(int row, int col, int width, int height, int channels, float* data)
+{
+
+  Vec3 poses[3][3];
+  int delta = 3;
+  poses[0][0] = getNormal(row-delta, col-delta, width, height, channels, data);
+  poses[0][1] = getNormal(row, col-delta, width, height, channels, data);
+  poses[0][2] = getNormal(row+delta, col-delta, width, height, channels, data);
+  poses[1][0] = getNormal(row-delta, col, width, height, channels, data);
+  poses[1][1] = getNormal(row, col, width, height, channels, data);
+  poses[1][2] = getNormal(row+delta, col, width, height, channels, data);
+  poses[2][0] = getNormal(row-delta, col+delta, width, height, channels, data);
+  poses[2][1] = getNormal(row, col+delta, width, height, channels, data);
+  poses[2][2] = getNormal(row+delta, col+delta, width, height, channels, data);
+
+  Vec3 blured(0,0,0);
+  for(int i=0; i<3; i++)
+  {
+    for(int j=0; j<3; j++)
+    {
+      blured = blured + (g_guassian[i][j] * poses[i][j]);
+    }
+  }
+
+  blured = (1.0/16.0) * blured;
+  float invLen = 1.0/ ( (float)blured );
+
+  return invLen * blured;
 }
 
 int main()
@@ -104,6 +152,7 @@ int main()
                                                  STBIR_1CHANNEL);
 
   std::cout << "resized " << std::endl;
+  stbi_image_free(originalData);
 
   int normChannels = 3;
   float* normalMap = new float[resizedWidth * resizedHeight * normChannels];
@@ -121,9 +170,42 @@ int main()
         normalMap[index+i] = norm[i];
     }
   }
+  free(resizedData);
+  
+  float* buffer[2];
+  int buffSize = resizedWidth * resizedHeight * normChannels;
+  buffer[0] = new float[buffSize];
+  buffer[1] = new float[buffSize];
+  
+  for(int i=0; i<buffSize; i++)
+  {
+    buffer[0][i] = normalMap[i];
+    buffer[1][i] = 0;
+  }
+  int buffNo = 0;
+
+  int blurCount = 10; 
+  while(blurCount--)
+  {
+
+    std::cout << "Blurs remaining : " << blurCount+1 << " ... " << std::endl;
+    for(int row=0; row<resizedHeight; row++)
+    {
+      for(int col=0; col<resizedWidth; col++)
+      {
+        Vec3 norm = guassianBlur(row, col, resizedWidth, resizedHeight, normChannels, buffer[buffNo]);
+        int index = (row * resizedWidth + col)*normChannels;
+        //Vec3 norm(buffer[buffNo][index], buffer[buffNo][index+1], buffer[buffNo][index+2]);
+        for(int i=0; i<3; i++)
+          buffer[1-buffNo][index+i] = norm[i];
+      }
+    }
+    buffNo = 1 - buffNo;
+  }
   
   std::string outputName = name + "Normal";
-  stbi_write_hdr( (outputName+".png").c_str(), resizedWidth, resizedHeight, normChannels, normalMap);
+  stbi_write_hdr( (outputName+".png").c_str(), resizedWidth, resizedHeight, normChannels, buffer[buffNo]);
+
 
   std::cout << "normals written" << std::endl;
 
@@ -137,15 +219,15 @@ int main()
         int index = (i*resizedWidth + j)*normChannels;
         for(int k=0; k<3; k++)
         {
-          letsLook[index+k] = (unsigned char)( (int) ( 255 * normalMap[index+k] ) );  
+          letsLook[index+k] = (unsigned char)( (int) ( 255 * buffer[buffNo][index+k] ) );  
         }
       }
     }
     stbi_write_png( (outputName + "_debug.png").c_str(), resizedWidth, resizedHeight, 3, letsLook, resizedWidth*3);
     std::cout << "debug written" << std::endl;
-    free(letsLook);
+    delete [] letsLook;
   }
-  stbi_image_free(originalData);
-  free(resizedData);
-  free(normalMap);
+  delete [] normalMap;
+  delete [] buffer[0];
+  delete [] buffer[1];
 }
