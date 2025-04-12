@@ -132,10 +132,19 @@ Vec3 guassianBlur(int row, int col, int width, int height, int channels, float* 
   return invLen * blured;
 }
 
-int main()
+int main(int argc, char** argv) // progname inputfile outputDir(opt) debug(opt) 
 {
+  if(argc < 2 || argc > 5)
+  {
+    std::cout << "Incorrect usage !! proper usage is : \n" 
+              << "hm2nm [input file path] [(optional) output directory path] [(optional) bool value for debug]"
+              << std::endl;
+    return -1;
+  }
 
-  bool debug = true;
+  std::string path = argv[1];
+
+  bool debug = false;
   std::string name = "sweden16";
   std::string path = name + ".png";
   

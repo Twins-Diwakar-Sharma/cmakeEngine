@@ -148,8 +148,9 @@ add_custom_target(copy-runtime-files ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/inventory ${CMAKE_BINARY_DIR}/bin/inventory
     DEPENDS ${PROJECT_NAME})
 
-
-# Copy compile_commands json
+# heightmap(hdr) to normalmap(hdr) convertor
+add_executable(hm2nm  ${SOURCE_DIR}/hm2nm.cpp ${SOURCE_DIR}/Mathril.cpp ${INC_DIR}/Mathril.h)
+target_include_directories(hm2nm PUBLIC ${INCS})
 
 # use following command
 
