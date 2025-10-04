@@ -61,8 +61,8 @@ void Engine::initialize()
     objects.emplace_back(meshMap["scary"], texMap["scary"]);
     objects[0].setPosition(0, 0, 0);
 
-    texMap.try_emplace("heightmap", "sweden16", TEX_HDR);
-    texMap.try_emplace("normalmap", "sweden16Normal", TEX_HDR);
+    texMap.try_emplace("heightmap", "everest16", TEX_HDR);
+    texMap.try_emplace("normalmap", "everest16Normal", TEX_HDR);
     
     cascadedShadow.createShadowFBOs(1024,1024); 
     cascadedShadow.update(cam, sun);

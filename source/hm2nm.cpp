@@ -9,6 +9,11 @@
 #include <string>
 #include "Mathril.h"
 
+
+#ifndef DISPLAY_SERVER
+#define DISPLAY_SERVER "windows"
+#endif
+
 Mat3 g_sobelX(-1.0, 0.0, 1.0, 
               -2.0, 0.0, 2.0,
               -1.0, 0.0, 1.0);
@@ -134,20 +139,49 @@ Vec3 guassianBlur(int row, int col, int width, int height, int channels, float* 
 
 int main(int argc, char** argv) // progname inputfile outputDir(opt) debug(opt) 
 {
-  if(argc < 2 || argc > 5)
+  if(argc < 2 || argc > 4)
   {
     std::cout << "Incorrect usage !! proper usage is : \n" 
               << "hm2nm [input file path] [(optional) output directory path] [(optional) bool value for debug]"
               << std::endl;
     return -1;
   }
+  
+  char dirChar = '/';
+  if(std::string(DISPLAY_SERVER).compare("windows") == 0)
+  {
+    dirChar = '\\';
+  }
 
   std::string path = argv[1];
 
+  int dirCharIdx = path.length()-1;
+  int extIdx = path.length()-1;
+  bool dotFound = false;
+  for(; dirCharIdx>=0 && path[dirCharIdx]!=dirChar; dirCharIdx--)
+  {
+    if(path[extIdx] == '.')
+      dotFound = true;
+    if(path[extIdx]!='.' && !dotFound)
+    {
+      extIdx--;
+    }
+  }
+
+  std::string outputDir = path.substr(0,dirCharIdx);
+  std::string name = path.substr(dirCharIdx+1,extIdx-dirCharIdx-1);
+
+
   bool debug = false;
-  std::string name = "sweden16";
-  std::string path = name + ".png";
-  
+  if(argc > 2)
+    outputDir = argv[2];
+  if(argc > 3)
+    debug = argv[3];
+
+  if(outputDir[outputDir.length() - 1] != dirChar) 
+    outputDir += dirChar;
+
+
   int width, height, channels = 0;
 
 
@@ -212,7 +246,7 @@ int main(int argc, char** argv) // progname inputfile outputDir(opt) debug(opt)
     buffNo = 1 - buffNo;
   }
   
-  std::string outputName = name + "Normal";
+  std::string outputName = outputDir + name + "Normal";
   stbi_write_hdr( (outputName+".png").c_str(), resizedWidth, resizedHeight, normChannels, buffer[buffNo]);
 
 

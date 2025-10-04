@@ -8,7 +8,7 @@
 #include "Projection.h"
 
 #ifndef DISPLAY_SERVER
-#define DISPLAY_SERVER "win"
+#define DISPLAY_SERVER "windows"
 #endif
 
 class Win

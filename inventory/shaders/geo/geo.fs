@@ -139,7 +139,9 @@ in float fragDepth;
 
 void main()
 {
-  vec3 fragNorm = getNormal(fragWorldPos); 
+  float currH = getProceduralHeight(fragWorldPos.x, fragWorldPos.z);
+  vec3 position = vec3(fragWorldPos.x, currH, fragWorldPos.z);
+  vec3 fragNorm = getNormal(position); 
   
 	vec3 toLight = normalize(-1*sun.dir);	
   int cascIdx = n_cascades-1;
@@ -162,36 +164,43 @@ void main()
   if(projCoords.z > 1.0)
     shadow = 0.0;
 */
-
   float shadow = 0;
 
 
-  float stepScale = 5;
+  float stepScale = 1;
   float step = dot(-sun.dir, vec3(0,1,0)) * stepScale + 2;
-  
-  int num_steps = 5;
+  step = 5; 
+  int num_steps = 50;
   shadow = 0;
-  vec3 position = fragWorldPos;
   float bias = max(0.05 * (1.0 - dot(fragNorm, toLight)), 0.005);
+  float posDistField = 10000;
   for(int i=0; i<num_steps; i++)
   {
     vec3 toSun = -sun.dir;
-    vec3 checkPos = position + step*toSun;
-    checkPos.y = getProceduralHeight(checkPos.x, checkPos.z);    
-    if(checkPos.y >= position.y+bias)
+    vec3 checkPos = position + (i+1)*step*toSun;
+    float height = getProceduralHeight(checkPos.x, checkPos.z);    
+    float distf = max(checkPos.y - height, 0.0);
+    posDistField = min(posDistField, distf);
+    if(checkPos.y + bias < height)
     {
-      shadow = 1;
+      shadow = 1.0;
       break;
     }
   }
 
+  float thresh = 1.5;
+  if(shadow == 0 && posDistField <= thresh)
+  {
+    posDistField = posDistField/thresh;
+    shadow = 1.0 - posDistField;
+  }
+
 
   float ambient = 0.2;
-	float diffuse = max(dot(toLight,fragNorm), ambient);
-  float dotSky = max(dot(vec3(0,1,0), fragNorm), ambient) * 0.2;
-  //diffuse = (1.0 - shadow) * diffuse + shadow * dotSky;
+	float dotSun = max(dot(toLight,fragNorm), 0);
+  float diffuse = (1.0 - shadow) * dotSun;
+  diffuse = max(diffuse, ambient);
 
   outColor = vec4(0.7,0.9,0.85,1);
-  outColor.rgb = diffuse * outColor.rgb;
-
+  outColor.rgb =   diffuse * outColor.rgb;
 }
