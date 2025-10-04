@@ -12,6 +12,7 @@
 #include "GeoRenderer.h"
 #include "GuiRenderer.h"
 #include "CascadedShadow.h"
+#include "MeshAnimated.h"
 
 class Engine
 {
@@ -54,6 +55,8 @@ private:
 
     CascadedShadow cascadedShadow;
     std::string fpsText;
+
+    MeshAnimated meshAnimated;
 
 public:
     Engine();

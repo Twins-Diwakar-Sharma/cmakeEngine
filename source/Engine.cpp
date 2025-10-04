@@ -1,6 +1,6 @@
 #include "Engine.h"
 
-Engine::Engine() 
+Engine::Engine() : meshAnimated("BunnyAnimated")
 {}
 
 Engine::~Engine()
@@ -56,11 +56,14 @@ void Engine::initialize()
     geoTerrain.initialize(64, 4);
     //shadowTerrain.initialize(32, 4);
 
-    meshMap.emplace("scary", "scary");
-    texMap.try_emplace("scary", "scaryBrown", TEX_DEF);
-    objects.emplace_back(meshMap["scary"], texMap["scary"]);
+    meshMap.emplace("retroCar", "retroCar");
+    texMap.try_emplace("retroCar", "retroCar", TEX_DEF);
+    objects.emplace_back(meshMap["retroCar"], texMap["retroCar"]);
     objects[0].setPosition(0, 0, 0);
-
+    
+    objects.emplace_back(meshAnimated, texMap["retroCar"]);
+    objects[1].setPosition(0, 2, 0);
+    
     texMap.try_emplace("heightmap", "everest16", TEX_HDR);
     texMap.try_emplace("normalmap", "everest16Normal", TEX_HDR);
     

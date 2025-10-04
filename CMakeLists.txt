@@ -46,6 +46,7 @@ set(
   ${SOURCE_DIR}/GuiRenderer.cpp
   ${SOURCE_DIR}/ShadowFBO.cpp
   ${SOURCE_DIR}/CascadedShadow.cpp
+  ${SOURCE_DIR}/MeshAnimated.cpp
 ) 
 
 set(INC_DIR ${CMAKE_SOURCE_DIR}/include)
@@ -71,6 +72,7 @@ set(
   ${INC_DIR}/GuiRenderer.h
   ${INC_DIR}/ShadowFBO.h
   ${INC_DIR}/CascadedShadow.h
+  ${INC_DIR}/MeshAnimated.h
 )
 
 

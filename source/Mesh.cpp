@@ -34,25 +34,22 @@ Mesh::Mesh()
 
 Mesh::Mesh(std::string name)
 {
-	std::vector<float> vertexData;
-	std::vector<unsigned int> indices;
 
 	std::string path = "inventory/models/" + name + ".stc";
-	std::ifstream ifs(path);
-	std::string line;
-	
-	std::getline(ifs, line);
-	std::istringstream iss(line);
-	float f;
-	while (iss >> f)
-		vertexData.push_back(f);
+	std::ifstream ifs(path, std::ios::in | std::ios::binary);
 
-	std::getline(ifs, line);
-	std::istringstream iss2(line);
-	unsigned int ui;
-	while (iss2 >> ui)
-		indices.push_back(ui);
+  int size = 0;
+  ifs.read((char*) &size, sizeof(int));
+  std::vector<float> vertexData(size);
+  ifs.read((char*)(vertexData.data()), size*sizeof(float));
+
+  ifs.read((char*) &size, sizeof(int));
+  std::vector<unsigned int> indices(size);
+  ifs.read((char*) (indices.data()), size*sizeof(unsigned int));
+
+  ifs.close();
 	generate(vertexData,indices);
+
 }
 
 Mesh::~Mesh()
