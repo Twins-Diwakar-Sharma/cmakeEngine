@@ -7,6 +7,26 @@
 #include <vector>
 #include "glad/glad.h"
 #include <iostream>
+#include <map>
+#include "Mathril.h"
+
+struct Skeleton
+{
+  std::map<std::string, unsigned int> jointIndex;
+  std::vector<std::vector<unsigned int>> jointTree;
+};
+
+struct JointData
+{
+  Vec3 position;
+  Quat rotation;
+  Vec3 scale;
+
+  JointData();
+  JointData(const JointData&);
+  JointData(JointData&&);
+  ~JointData();
+};
 
 class MeshAnimated : public Mesh
 {
@@ -20,6 +40,10 @@ public:
 	void bind();
 	void unbind();
 	int size();
+
+  Skeleton skeleton;
+  std::vector<JointData> invBind;
+  std::map<std::string, std::vector<std::vector<JointData>>> animation;
 };
 
 #endif
