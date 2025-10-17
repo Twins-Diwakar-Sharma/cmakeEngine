@@ -10,6 +10,7 @@
 #include "Mathril.h"
 #include "Camera.h"
 #include "Light.h"
+#include "MeshAnimated.h"
 
 #define NOTHING 0
 #define GEO 1
@@ -49,7 +50,8 @@ public:
     void setUniform(std::string, Vec4&);
     void setUniform(std::string, Vec4&&);
 
-
+    void mapJointDataArrayUniform(std::string name);
+    void setJointDataArrayUniform(std::string name, std::vector<JointData>& currentFrame);
 };
 
 #endif

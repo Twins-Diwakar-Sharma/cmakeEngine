@@ -3,19 +3,22 @@
 JointData::JointData()
 {}
 
-JointData::JointData(const JointData& jd): position(jd.position), rotation(jd.rotation), scale(jd.scale)
+JointData::JointData(const JointData& jd): translation(jd.translation), rotation(jd.rotation), scale(jd.scale)
 {
 }
 
 JointData::JointData(JointData&& jd)
 {
-  position = std::move(jd.position);
+  translation = std::move(jd.translation);
   rotation = std::move(jd.rotation);
   scale = std::move(jd.scale);
 }
 
 JointData::~JointData()
 {}
+
+
+int MeshAnimated::max_joints = 16;
 
 void MeshAnimated::generate(std::vector<float>& vertexData, std::vector<unsigned int>& indices)
 {
@@ -69,12 +72,12 @@ MeshAnimated::MeshAnimated(std::string name)
   ifs.read((char*) &dataSize, sizeof(unsigned int));
   std::vector<float> tempInvBindData(dataSize * (3 + 4 + 3));
   ifs.read((char*)(tempInvBindData.data()), tempInvBindData.size() * sizeof(float));
-  invBind.reserve(dataSize);
+  invBind.resize(dataSize);
   for(unsigned int i=0; i<dataSize; i++)
   {
-    invBind[i].position[0] = tempInvBindData[i*10 + 0];
-    invBind[i].position[1] = tempInvBindData[i*10 + 1];
-    invBind[i].position[2] = tempInvBindData[i*10 + 2];
+    invBind[i].translation[0] = tempInvBindData[i*10 + 0];
+    invBind[i].translation[1] = tempInvBindData[i*10 + 1];
+    invBind[i].translation[2] = tempInvBindData[i*10 + 2];
     invBind[i].rotation[0] = tempInvBindData[i*10 + 3];
     invBind[i].rotation[1] = tempInvBindData[i*10 + 4];
     invBind[i].rotation[2] = tempInvBindData[i*10 + 5];
@@ -93,9 +96,8 @@ MeshAnimated::MeshAnimated(std::string name)
     std::string boneName;
     boneName.resize(sizeString);
     ifs.read((char*)(boneName.data()), sizeString * sizeof(char));
-    std::cout << boneName << std::endl;
     skeleton.jointIndex[boneName] = i;
-  
+      std::cout << boneName << " -> " << i << std::endl;
     unsigned int numChildren = 0;
     ifs.read((char*) &numChildren, sizeof(unsigned int));
     skeleton.jointTree.push_back(std::vector<unsigned int>(numChildren));
@@ -104,6 +106,17 @@ MeshAnimated::MeshAnimated(std::string name)
       ifs.read((char*) (skeleton.jointTree[i].data()), numChildren * sizeof(unsigned int));
     }
   }
+
+
+  skeleton.jointParent.resize(dataSize, -1);
+  for(int i=0; i<skeleton.jointTree.size(); i++)
+  {
+    for(int j=0; j<skeleton.jointTree[i].size(); j++)
+    {
+      skeleton.jointParent[j] = i;
+    }
+  }
+
   
   // animations
   unsigned int nAnims = 0;
@@ -122,9 +135,9 @@ MeshAnimated::MeshAnimated(std::string name)
     std::vector<float> temp(nKeys * sizeJoints * 10);
     ifs.read((char*)(temp.data()), temp.size() * sizeof(float));
     animation.emplace(animName, std::vector<std::vector<JointData>>(
-            nKeys, std::vector<JointData>(sizeJoints)
-          )
-        );
+        nKeys, std::vector<JointData>(sizeJoints)
+      )
+    );
   
     std::vector<std::vector<JointData>>& currentAnim = animation[animName];
     for(unsigned int key=0; key<nKeys; key++)
@@ -132,9 +145,9 @@ MeshAnimated::MeshAnimated(std::string name)
       for(unsigned int bone=0; bone<sizeJoints; bone++)
       {
         unsigned int index = (key*sizeJoints + bone)*(10);
-        currentAnim[key][bone].position[0] = temp[index + 0];
-        currentAnim[key][bone].position[1] = temp[index + 1];
-        currentAnim[key][bone].position[2] = temp[index + 2];
+        currentAnim[key][bone].translation[0] = temp[index + 0];
+        currentAnim[key][bone].translation[1] = temp[index + 1];
+        currentAnim[key][bone].translation[2] = temp[index + 2];
         currentAnim[key][bone].rotation[0] = temp[index + 3];
         currentAnim[key][bone].rotation[1] = temp[index + 4];
         currentAnim[key][bone].rotation[2] = temp[index + 5];

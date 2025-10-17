@@ -12,7 +12,8 @@
 #include "GeoRenderer.h"
 #include "GuiRenderer.h"
 #include "CascadedShadow.h"
-#include "MeshAnimated.h"
+#include "ObjectRendererAnimated.h"
+
 
 class Engine
 {
@@ -57,6 +58,8 @@ private:
     std::string fpsText;
 
     MeshAnimated meshAnimated;
+    ObjectRendererAnimated objectRendererAnimated;
+    std::vector<ObjectAnimated> objectsAnimated;
 
 public:
     Engine();

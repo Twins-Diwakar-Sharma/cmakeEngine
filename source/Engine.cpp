@@ -1,6 +1,6 @@
 #include "Engine.h"
 
-Engine::Engine() : meshAnimated("BunnyAnimated")
+Engine::Engine() : meshAnimated("BunnyBones")
 {}
 
 Engine::~Engine()
@@ -59,10 +59,15 @@ void Engine::initialize()
     meshMap.emplace("retroCar", "retroCar");
     texMap.try_emplace("retroCar", "retroCar", TEX_DEF);
     objects.emplace_back(meshMap["retroCar"], texMap["retroCar"]);
-    objects[0].setPosition(0, 0, 0);
+    objects[0].setPosition(0, -2, 0);
     
-    objects.emplace_back(meshAnimated, texMap["retroCar"]);
-    objects[1].setPosition(0, 2, 0);
+    texMap.try_emplace("Bunny", "Bunny", TEX_DEF);
+    //objects.emplace_back(meshAnimated, texMap["Bunny"]);
+    //objects[1].setPosition(0, 2, 0);
+    objectsAnimated.emplace_back(meshAnimated, texMap["Bunny"]);
+    objectsAnimated[0].setAnimation("idle");
+
+    //objectsAnimated[0].animate();
     
     texMap.try_emplace("heightmap", "everest16", TEX_HDR);
     texMap.try_emplace("normalmap", "everest16Normal", TEX_HDR);
@@ -101,6 +106,7 @@ void Engine::update()
       //shadowTerrain.update(cam.position);
     }
     cascadedShadow.update(cam, sun);
+    objectsAnimated[0].animate();
   }
 
 
@@ -128,6 +134,7 @@ void Engine::render(double dt)
   glViewport(0,0,winW,winH);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   objectRenderer.render(objects, cam, sun);
+  objectRendererAnimated.render(objectsAnimated, cam, sun);
   if(wireframe)
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   geoRenderer.render(geoTerrain, cam, sun, texMap["heightmap"], texMap["normalmap"], cascadedShadow);

@@ -14,11 +14,13 @@ struct Skeleton
 {
   std::map<std::string, unsigned int> jointIndex;
   std::vector<std::vector<unsigned int>> jointTree;
+  std::vector<int> jointParent;
 };
+
 
 struct JointData
 {
-  Vec3 position;
+  Vec3 translation;
   Quat rotation;
   Vec3 scale;
 
@@ -44,6 +46,8 @@ public:
   Skeleton skeleton;
   std::vector<JointData> invBind;
   std::map<std::string, std::vector<std::vector<JointData>>> animation;
+
+  static int max_joints; // 16 defined in cpp
 };
 
 #endif

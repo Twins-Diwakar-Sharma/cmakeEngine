@@ -245,3 +245,51 @@ void ShaderProgram::setUniform(std::string name, Vec4&& v)
 	glUniform4f(uniformMap[name], v[0], v[1], v[2], v[3]);
 }
 
+void ShaderProgram::mapJointDataArrayUniform(std::string name)
+{
+  for(unsigned int i=0; i<MeshAnimated::max_joints; i++)
+  {
+    std::string baseName = name + "[" + std::to_string(i) + "]";
+    std::string scaName = baseName + ".scale";
+    std::string rotName = baseName + ".rotation";
+    std::string posName = baseName + ".translation";
+
+    int rotLoc = glGetUniformLocation(programID, rotName.c_str());
+    int posLoc = glGetUniformLocation(programID, posName.c_str());
+    int scaLoc = glGetUniformLocation(programID, scaName.c_str());
+
+    uniformMap.insert({rotName, rotLoc});
+    uniformMap.insert({posName, posLoc});
+    uniformMap.insert({scaName, scaLoc});
+  }
+}
+
+void ShaderProgram::setJointDataArrayUniform(std::string name, std::vector<JointData>& currentFrame)
+{
+  unsigned int i=0;
+  for(; i<currentFrame.size(); i++)
+  {
+    std::string baseName = name + "[" + std::to_string(i) + "]";
+    std::string scaName = baseName + ".scale";
+    std::string rotName = baseName + ".rotation";
+    std::string posName = baseName + ".translation";
+    
+    glUniform4f(uniformMap[rotName],  currentFrame[i].rotation[1], currentFrame[i].rotation[2], currentFrame[i].rotation[3], currentFrame[i].rotation[0]);
+    glUniform3f(uniformMap[posName], currentFrame[i].translation[0], currentFrame[i].translation[1], currentFrame[i].translation[2]);	
+    glUniform3f(uniformMap[scaName], currentFrame[i].scale[0], currentFrame[i].scale[1], currentFrame[i].scale[2]);	
+  }
+  
+  // might comment this loop idk
+  for(; i<MeshAnimated::max_joints; i++)
+  {
+    std::string baseName = name + "[" + std::to_string(i) + "]";
+    std::string scaName = baseName + ".scale";
+    std::string rotName = baseName + ".rotation";
+    std::string posName = baseName + ".translation";
+    
+    glUniform4f(uniformMap[rotName],  0,0,0,1);
+    glUniform3f(uniformMap[posName], 0,0,0);	
+    glUniform3f(uniformMap[scaName], 1,1,1);	
+  }
+}
+

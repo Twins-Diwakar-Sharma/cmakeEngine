@@ -285,7 +285,7 @@ class Quat
         friend Quat operator*(float s, Quat& q);
         friend Quat operator*(float s, Quat&& q);
 
-        friend Quat slerp(Quat& q, Quat& p, float t);
+        friend Quat slerp(Quat& current, Quat& next, float t);
         
         explicit operator float() const; // get magnitude
         
